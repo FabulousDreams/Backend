@@ -1,44 +1,42 @@
-const { Schema, model } = require("mongoose");
+const mongoose = require('mongoose')
+const { Schema, model } = mongoose
 
-const dreamSchema = new Schema(
-    {
-        user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true
-        },
+const dreamSchema = new Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
 
-        title: {
-            type: String,
-            required: true
-        },
+  title: {
+    type: String,
+    required: true
+  },
 
-        description: {
-            type: String,
-            required: true
-        },
+  description: {
+    type: String,
+    required: true
+  },
 
-        date: {
-            type: Date,
-            default: Date.now
-        },
+  date: {
+    type: Date,
+    default: Date.now
+  },
 
-        emotions: [String], // array of emotions ( “happy”, “anxious”)
+  emotions: [String], // array of emotions ( “happy”, “anxious”)
 
-        tags: [String], // Array of user-defined tags ( “flying”, “ocean”)
+  tags: [String], // Array of user-defined tags ( “flying”, “ocean”)
 
-        isPublic: {
-            type: Boolean,
-            default: false
-        }, // For anonymous sharing
+  isPublic: {
+    type: Boolean,
+    default: false
+  }, // For anonymous sharing
 
-        imageUrl: {
-            type: String
-        },
-    }
-);
+  imageUrl: {
+    type: String
+  }
+})
 
+const Dream = model('Dream', dreamSchema)
 
-const Dream = model("Dream", dreamSchema);
-
-module.exports = Dream;
+module.exports = Dream
