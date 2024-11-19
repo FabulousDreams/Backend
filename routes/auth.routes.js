@@ -5,54 +5,56 @@ const jwt = require('jsonwebtoken')
 const { isAuthenticated } = require('../middleware/jwt.middleware.js')
 const User = require('../models/User.model')
 const saltRounds = 10
-router.post('/signup', (req, res, next) => {
-  const { email, password, name } = req.body
+router.post('/signup', async (req, res, next) => {
+  try {
+    const { email, password, username, role } = req.body
 
-  if (email === '' || password === '' || name === '') {
-    res.status(400).json({ message: 'Provide email, password and name' })
-    return
-  }
+    if (!email || !password || !username) {
+      return res
+        .status(400)
+        .json({ message: 'Provide email, password, and username' })
+    }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
-  if (!emailRegex.test(email)) {
-    res.status(400).json({ message: 'Provide a valid email address.' })
-    return
-  }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Provide a valid email address.' })
+    }
 
-  const passwordRegex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/
-  if (!passwordRegex.test(password)) {
-    res.status(400).json({
-      message:
-        'Password must have at least 6 characters and contain at least one number, one lowercase and one uppercase letter.'
-    })
-    return
-  }
-
-  User.findOne({ email })
-    .then(foundUser => {
-      if (foundUser) {
-        res.status(400).json({ message: 'User already exists.' })
-        return
-      }
-
-      const salt = bcrypt.genSaltSync(saltRounds)
-      const hashedPassword = bcrypt.hashSync(password, salt)
-
-      return User.create({ email, password: hashedPassword, name })
-    })
-    .then(createdUser => {
-      const { email, name, _id } = createdUser
-
-      // Create a new object that doesn't expose the password
-      const payload = { _id, email, name }
-      const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
-        algorithm: 'HS256',
-        expiresIn: '6h'
+    const passwordRegex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        message:
+          'Password must have at least 6 characters and contain at least one number, one lowercase and one uppercase letter.'
       })
-      // Send a json response containing the user object
-      res.status(201).json({ user: { _id, email, name }, authToken })
+    }
+    console.log({ email, password, username, role })
+    const foundUser = await User.findOne({ email })
+    if (foundUser) {
+      return res.status(400).json({ message: 'User already exists.' })
+    }
+
+    const salt = bcrypt.genSaltSync(10)
+    const hashedPassword = bcrypt.hashSync(password, salt)
+    console.log({ hashedPassword })
+    const createdUser = await User.create({
+      email,
+      password: hashedPassword,
+      username,
+      role
     })
-    .catch(err => next(err)) // In this case, we send error handling to the error handling middleware.
+    const { _id } = createdUser
+    const payload = { _id, email, username }
+
+    const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
+      algorithm: 'HS256',
+      expiresIn: '6h'
+    })
+
+    res.status(201).json({ user: { _id, email, username }, authToken })
+  } catch (error) {
+    console.error('Error in signup route:', error.message)
+    next(error)
+  }
 })
 
 // POST  /auth/login - Verifies email and password and returns a JWT
@@ -79,10 +81,10 @@ router.post('/login', (req, res, next) => {
 
       if (passwordCorrect) {
         // Deconstruct the user object to omit the password
-        const { _id, email, name } = foundUser
+        const { _id, email, username } = foundUser
 
         // Create an object that will be set as the token payload
-        const payload = { _id, email, name }
+        const payload = { _id, email, username }
 
         // Create a JSON Web Token and sign it
         const authToken = jwt.sign(payload, process.env.TOKEN_SECRET, {
