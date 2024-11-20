@@ -23,7 +23,7 @@ const emotionSchema = new Schema({
     type: Date,
     default: Date.now
   },
-  deail: [{ type: String }],
+  detail: [{ type: String }],
   color: [String]
 })
 
