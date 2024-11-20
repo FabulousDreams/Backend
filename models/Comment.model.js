@@ -8,25 +8,24 @@ const commentsSchema = new Schema({
     required: true
   },
 
-  userId: { 
-    type: Schema.Types.ObjectId, 
-    ref: 'User', 
-    required: true 
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   },
 
-  text: { 
-    type: String, 
+  text: {
+    type: String,
     required: true,
-    trim: true, 
+    trim: true,
   },
-
-  date: { 
-    type: Date, 
+  date: {
+    type: Date,
     default: Date.now  //date the comment was created
   },
 
+}, {
   timestamps: true // automatically adds createdAt and updatedAt fields
-
 });
 
 const Comment = model('Comment', commentsSchema);

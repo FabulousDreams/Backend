@@ -2,13 +2,13 @@ const { Schema, model } = require('mongoose')
 
 const emotionSchema = new Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
 
   dreamId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'Dream',
     required: true
   },
