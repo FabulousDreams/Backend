@@ -21,7 +21,7 @@ router.get('/comments/dream/:dreamId', isAuthenticated, (req, res, next) => {
 router.post('/comments', isAuthenticated, (req, res, next) => {
     Comments.create({
         dreamId: req.body.dreamId,
-        userId: req.user.id,
+        userId: req.user._id,
         text: req.body.text,
         date: new Date()
     })
@@ -36,7 +36,7 @@ router.post('/comments', isAuthenticated, (req, res, next) => {
 // update a comment by ID
 
 router.put('/comments/:id', isAuthenticated, (re, res, next) => {
-    Comments.findById(req.params.id)
+    Comments.findById(req.params._id)
         .then(comment => {
             if(!comment) {
                 return res.status(404).json({ error: 'Not authorized to update this comment' })
@@ -56,12 +56,12 @@ router.put('/comments/:id', isAuthenticated, (re, res, next) => {
 // delete a comment by ID
 
 router.delete('/comments/:id', isAuthenticated, (req, res, next) => {
-    Comments.findById(req.params.id)
+    Comments.findById(req.params._id)
         .then(comment => {
             if(!comment)  {
                 return res.status(404).json({ error: 'Comment not found' });
             }
-            if(comment.userId.toString() !== req.user.id) {
+            if(comment.userId.toString() !== req.user._id) {
                 return res.status(403).json({ error: 'Not authorized to delete this comment' })
             }
             return comment.deleteOne();
