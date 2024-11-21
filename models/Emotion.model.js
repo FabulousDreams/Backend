@@ -10,7 +10,7 @@ const emotionSchema = new Schema({
   dreamId: {
     type: Schema.Types.ObjectId,
     ref: 'Dream',
-    required: true
+    
   },
 
   emotions: [
