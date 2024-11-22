@@ -5,22 +5,25 @@ const Dream = require('../models/Dream.model')
 const { isAuthenticated } = require('../middleware/jwt.middleware.js')
 const isAdmin = require('../middleware/role.middleware')
 
-router.get('/profile', isAuthenticated, async (req, res) => {
-  try {
-    const userId = req.payload._id
-    const user = await User.findById(userId, '-password')
-    if (!user) {
-      return res.status(404).json({ message: 'User not found.' })
-    }
-    res.status(200).json(user)
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching user profile.', error })
-  }
+router.get('/profile', isAuthenticated, (req, res, next) => {
+  const userId = req.user._id
+
+  User.findById(userId, '-password')
+    .then(user => {
+      if (!user) {
+        return res.status(404).json({ message: 'User not found.' })
+      }
+      res.status(200).json(user) // Respond with user data
+    })
+    .catch(error => {
+      console.error('Error fetching user profile:', error) // Debugging: Log error
+      next(error) // Pass the error to the next middleware (error handler)
+    })
 })
 
 router.put('/profile', isAuthenticated, async (req, res) => {
   try {
-    const userId = req.payload._id
+    const userId = req.user._id
     const { username, email, profileImageUrl } = req.body
 
     const updatedUser = await User.findByIdAndUpdate(
