@@ -1,6 +1,8 @@
 const express = require('express')
 const router = express.Router()
 const Comments = require('../models/Comment.model.js')
+const Dreams = require('../models/Dream.model.js') // Import the Dreams model
+
 const { isAuthenticated } = require('../middleware/jwt.middleware.js')
 
 // GET all comments for a specific dream

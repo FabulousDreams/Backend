@@ -5,7 +5,40 @@ const Dream = require('../models/Dream.model')
 const { isAuthenticated } = require('../middleware/jwt.middleware.js')
 const isAdmin = require('../middleware/role.middleware')
 
-// List all users (for admin)
+router.get('/profile', isAuthenticated, async (req, res) => {
+  try {
+    const userId = req.payload._id
+    const user = await User.findById(userId, '-password')
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' })
+    }
+    res.status(200).json(user)
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching user profile.', error })
+  }
+})
+
+router.put('/profile', isAuthenticated, async (req, res) => {
+  try {
+    const userId = req.payload._id
+    const { username, email, profileImageUrl } = req.body
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { username, email, profileImageUrl },
+      { new: true, runValidators: true }
+    )
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found.' })
+    }
+
+    res.status(200).json(updatedUser)
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating user profile.', error })
+  }
+})
+
 router.get('/admin/users', isAuthenticated, isAdmin, async (req, res) => {
   try {
     const users = await User.find({}, '-password')
@@ -15,7 +48,6 @@ router.get('/admin/users', isAuthenticated, isAdmin, async (req, res) => {
   }
 })
 
-// Delete a user
 router.delete(
   '/admin/users/:id',
   isAuthenticated,
@@ -34,7 +66,6 @@ router.delete(
   }
 )
 
-// List all public dreams
 router.get('/admin/dreams', isAuthenticated, isAdmin, async (req, res) => {
   try {
     const publicDreams = await Dream.find({ isPublic: true }).populate(
