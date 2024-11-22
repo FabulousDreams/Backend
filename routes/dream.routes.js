@@ -3,24 +3,53 @@ const router = express.Router()
 const { isAuthenticated } = require('../middleware/jwt.middleware.js')
 const Dreams = require('../models/Dream.model.js')
 
-router.get('/dreams', isAuthenticated, (req, res, next) => {
-  Dreams.find()
-    .then(AllDreams => {
-      res.status(200).json(AllDreams)
+router.get('/dreams/public', isAuthenticated, (req, res, next) => {
+  const { tags, emotions, startDate, endDate } = req.query
+  const filter = { isPublic: true }
+
+  if (tags) filter.tags = { $in: tags.split(',') }
+  if (emotions) filter.emotions = { $in: emotions.split(',') }
+  if (startDate || endDate) {
+    filter.date = {}
+    if (startDate) filter.date.$gte = new Date(startDate)
+    if (endDate) filter.date.$lte = new Date(endDate)
+  }
+
+  Dreams.find(filter)
+    .then(publicDreams => {
+      res.status(200).json(publicDreams)
     })
     .catch(error => {
       next(error)
     })
 })
+
+router.get('/dreams/mine', isAuthenticated, (req, res, next) => {
+  Dreams.find({ userId: req.user._id })
+    .then(userDreams => {
+      res.status(200).json(userDreams)
+    })
+    .catch(error => {
+      next(error)
+    })
+})
+
 router.get('/dreams/:id', isAuthenticated, (req, res, next) => {
   Dreams.findById(req.params.id)
     .then(dream => {
+      if (!dream) {
+        return res.status(404).json({ message: 'Dream not found.' })
+      }
+      if (!dream.isPublic && dream.userId.toString() !== req.user._id) {
+        return res.status(403).json({ message: 'Access denied.' })
+      }
       res.status(200).json(dream)
     })
     .catch(error => {
       next(error)
     })
 })
+
 router.post('/dreams', isAuthenticated, (req, res, next) => {
   const { title, description, emotions, tags, isPublic, imageUrl } = req.body
   console.log(req.body)
@@ -67,4 +96,5 @@ router.delete('/dreams/:id', isAuthenticated, (req, res, next) => {
       next(error)
     })
 })
+
 module.exports = router
