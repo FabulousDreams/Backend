@@ -1,77 +1,111 @@
-const express = require('express');
-const router = express.Router();
+const express = require('express')
+const router = express.Router()
 const Comments = require('../models/Comment.model.js')
 const { isAuthenticated } = require('../middleware/jwt.middleware.js')
 
 // GET all comments for a specific dream
 
 router.get('/comments/dream/:dreamId', isAuthenticated, (req, res, next) => {
-    Comments.find({ dreamId: req.params.dreamId })
-        .populate('userId', 'username')
-        .then(comments => {
-            res.status(200).json(comments);
-        })
-        .catch(error => {
-            next(error);
-        });
-});
+  Comments.find({ dreamId: req.params.dreamId })
+    .populate('userId', 'username')
+    .then(comments => {
+      res.status(200).json(comments)
+    })
+    .catch(error => {
+      next(error)
+    })
+})
 
 // Create a new comment
 
-router.post('/comments', isAuthenticated, (req, res, next) => {
-    Comments.create({
-        dreamId: req.body.dreamId,
-        userId: req.user._id,
-        text: req.body.text,
-        date: new Date()
+router.post('/comments', isAuthenticated, async (req, res, next) => {
+  try {
+    const { dreamId, text } = req.body
+
+    // Validate required fields
+    if (!dreamId || !text) {
+      return res.status(400).json({ error: 'Dream ID and text are required.' })
+    }
+
+    const dream = await Dreams.findById(dreamId)
+    if (!dream) {
+      return res.status(404).json({ error: 'Dream not found.' })
+    }
+
+    const isUserAuthorizedToComment =
+      dream.isPublic || dream.userId.toString() === req.user._id
+
+    if (!isUserAuthorizedToComment) {
+      return res.status(403).json({ error: 'Access denied.' })
+    }
+    const newComment = await Comments.create({
+      dreamId,
+      userId: req.user._id,
+      text,
+      date: new Date()
     })
-    .then(newComment => {
-        res.status(201).json(newComment);
-    })
-    .catch(error => {
-        next(error);
-    });
-});
+
+    res.status(201).json(newComment)
+  } catch (error) {
+    next(error)
+  }
+})
 
 // update a comment by ID
+// PUT: Update a comment by ID
+router.put('/comments/:id', isAuthenticated, async (req, res, next) => {
+  try {
+    const { id } = req.params
+    const { text } = req.body
 
-router.put('/comments/:id', isAuthenticated, (re, res, next) => {
-    Comments.findById(req.params._id)
-        .then(comment => {
-            if(!comment) {
-                return res.status(404).json({ error: 'Not authorized to update this comment' })
-            }
+    // Find the comment
+    const comment = await Comments.findById(id)
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found.' })
+    }
 
-            comment.text = req.body.text || comment.text;
-            return comment.save();
-        })
-        .then(updatedComment => {
-            res.status(200).json(updatedComment);
-        })
-        .catch(error => {
-            next(error);
-        });
-});
+    // Check if the user owns the comment
+    if (comment.userId.toString() !== req.user._id) {
+      return res
+        .status(403)
+        .json({ error: 'Not authorized to update this comment.' })
+    }
 
-// delete a comment by ID
+    // Update the comment
+    comment.text = text || comment.text
+    const updatedComment = await comment.save()
 
-router.delete('/comments/:id', isAuthenticated, (req, res, next) => {
-    Comments.findById(req.params._id)
-        .then(comment => {
-            if(!comment)  {
-                return res.status(404).json({ error: 'Comment not found' });
-            }
-            if(comment.userId.toString() !== req.user._id) {
-                return res.status(403).json({ error: 'Not authorized to delete this comment' })
-            }
-            return comment.deleteOne();
-        })
-        .then(() => {
-            res.status(204).send();
-        })
-        .catch(error => {
-            next(error);
-        });
-});
+    res.status(200).json(updatedComment)
+  } catch (error) {
+    next(error)
+  }
+})
 
-module.exports = router;
+// DELETE: Delete a comment by ID
+router.delete('/comments/:id', isAuthenticated, async (req, res, next) => {
+  try {
+    const { id } = req.params
+
+    // Find the comment
+    const comment = await Comments.findById(id)
+    if (!comment) {
+      return res.status(404).json({ error: 'Comment not found.' })
+    }
+
+    // Check if the user owns the comment
+    if (comment.userId.toString() !== req.user._id) {
+      return res
+        .status(403)
+        .json({ error: 'Not authorized to delete this comment.' })
+    }
+
+    // Delete the comment
+    await comment.deleteOne()
+
+    res.status(204).send()
+  } catch (error) {
+    next(error)
+  }
+})
+
+module.exports = router
