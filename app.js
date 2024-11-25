@@ -25,6 +25,10 @@ app.use('/api', emotionRoutes)
 
 const commentRoutes = require('./routes/comment.routes')
 app.use('/api', commentRoutes)
+
+const analysisRoutes = require('./routes/analysis.routes')
+app.use('/api', analysisRoutes)
+
 const adminRoutes = require('./routes/admin.routes')
 app.use('/api', adminRoutes)
 
