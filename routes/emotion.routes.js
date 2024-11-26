@@ -10,8 +10,6 @@ router.get('/emotions', (req, res, next) => {
   Emotion.find()
     .then(emotions => {
       res.status(200).json(emotions)
-
-      console.log(res)
     })
     .catch(error => next(error))
 })

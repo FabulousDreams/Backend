@@ -52,7 +52,7 @@ router.get('/dreams/:id', isAuthenticated, (req, res, next) => {
 
 router.post('/dreams', isAuthenticated, (req, res, next) => {
   const { title, description, emotions, tags, isPublic, imageUrl } = req.body
-  console.log(req.body)
+
   if (!title || !description) {
     return res
       .status(400)
