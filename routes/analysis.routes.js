@@ -8,28 +8,29 @@ router.get('/analysis/emotions', isAuthenticated, (req, res, next) => {
   Dream.aggregate([
     { $unwind: '$emotions' },
     {
-      $group: {
-        _id: '$emotions',
-        count: { $sum: 1 }
-      }
-    },
-    {
       $lookup: {
-        from: 'emotions',
-        localField: '_id',
+        from: 'emotions', // Matches the `Emotion` model's collection
+        localField: 'emotions',
         foreignField: '_id',
         as: 'emotionDetails'
       }
     },
+    { $unwind: '$emotionDetails' },
+    {
+      $group: {
+        _id: '$emotionDetails.name', // Group by emotion name
+        count: { $sum: 1 }
+      }
+    },
     {
       $project: {
-        emotion: { $arrayElemAt: ['$emotionDetails.name', 0] },
+        emotion: '$_id',
         count: 1
       }
     }
   ])
     .then(result => res.status(200).json(result))
-    .catch(error => next(error))
+    .catch(err => next(err))
 })
 
 // Get dream count grouped by tags
@@ -37,22 +38,23 @@ router.get('/analysis/tags', isAuthenticated, (req, res, next) => {
   Dream.aggregate([
     { $unwind: '$tags' },
     {
-      $group: {
-        _id: '$tags',
-        count: { $sum: 1 }
-      }
-    },
-    {
       $lookup: {
-        from: 'tags',
-        localField: '_id',
+        from: 'tags', // Matches the `Tag` model's collection
+        localField: 'tags',
         foreignField: '_id',
         as: 'tagDetails'
       }
     },
+    { $unwind: '$tagDetails' },
+    {
+      $group: {
+        _id: '$tagDetails.name', // Group by tag name
+        count: { $sum: 1 }
+      }
+    },
     {
       $project: {
-        tag: { $arrayElemAt: ['$tagDetails.name', 0] },
+        tag: '$_id',
         count: 1
       }
     }

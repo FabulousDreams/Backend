@@ -25,9 +25,13 @@ async function seedEmotions () {
   ]
 
   try {
-    await Emotion.deleteMany()
-    console.log('Emotions collection cleared.')
-    await Emotion.insertMany(emotions)
+    for (const emotion of emotions) {
+      await Emotion.updateOne(
+        { name: emotion.name },
+        { $set: emotion },
+        { upsert: true }
+      )
+    }
     console.log('Emotions seeded successfully.')
   } catch (err) {
     console.error('Error seeding emotions:', err)
@@ -55,9 +59,9 @@ async function seedTags () {
   ]
 
   try {
-    await Tag.deleteMany()
-    console.log('Tags collection cleared.')
-    await Tag.insertMany(tags)
+    for (const tag of tags) {
+      await Tag.updateOne({ name: tag.name }, { $set: tag }, { upsert: true })
+    }
     console.log('Tags seeded successfully.')
   } catch (error) {
     console.error('Error seeding tags:', error)
