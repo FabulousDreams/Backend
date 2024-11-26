@@ -59,21 +59,6 @@ router.post('/dreams', isAuthenticated, (req, res, next) => {
       .json({ message: 'User ID, title, and description are required.' })
   }
 
-  // Validate emotions
-  if (emotions) {
-    const validEmotions = Emotion.find({ _id: { $in: emotions } })
-    if (validEmotions.length !== emotions.length) {
-      return res.status(400).json({ message: 'Invalid emotions provided.' })
-    }
-  }
-
-  // Validate tags
-  if (tags) {
-    const validTags = Tag.find({ _id: { $in: tags } })
-    if (validTags.length !== tags.length) {
-      return res.status(400).json({ message: 'Invalid tags provided.' })
-    }
-  }
   Dreams.create({
     userId: req.user._id,
     title,
