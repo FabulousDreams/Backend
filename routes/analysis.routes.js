@@ -3,13 +3,12 @@ const router = express.Router()
 const { isAuthenticated } = require('../middleware/jwt.middleware.js')
 const Dream = require('../models/Dream.model.js')
 
-// Get dream count grouped by emotions
 router.get('/analysis/emotions', isAuthenticated, (req, res, next) => {
   Dream.aggregate([
     { $unwind: '$emotions' },
     {
       $lookup: {
-        from: 'emotions', // Matches the `Emotion` model's collection
+        from: 'emotions',
         localField: 'emotions',
         foreignField: '_id',
         as: 'emotionDetails'
@@ -18,7 +17,7 @@ router.get('/analysis/emotions', isAuthenticated, (req, res, next) => {
     { $unwind: '$emotionDetails' },
     {
       $group: {
-        _id: '$emotionDetails.name', // Group by emotion name
+        _id: '$emotionDetails.name',
         count: { $sum: 1 }
       }
     },
@@ -33,13 +32,12 @@ router.get('/analysis/emotions', isAuthenticated, (req, res, next) => {
     .catch(err => next(err))
 })
 
-// Get dream count grouped by tags
 router.get('/analysis/tags', isAuthenticated, (req, res, next) => {
   Dream.aggregate([
     { $unwind: '$tags' },
     {
       $lookup: {
-        from: 'tags', // Matches the `Tag` model's collection
+        from: 'tags',
         localField: 'tags',
         foreignField: '_id',
         as: 'tagDetails'
@@ -48,7 +46,7 @@ router.get('/analysis/tags', isAuthenticated, (req, res, next) => {
     { $unwind: '$tagDetails' },
     {
       $group: {
-        _id: '$tagDetails.name', // Group by tag name
+        _id: '$tagDetails.name',
         count: { $sum: 1 }
       }
     },
@@ -63,7 +61,6 @@ router.get('/analysis/tags', isAuthenticated, (req, res, next) => {
     .catch(error => next(error))
 })
 
-// Get dream trends over time (grouped by month/year)
 router.get('/analysis/trends', isAuthenticated, (req, res, next) => {
   Dream.aggregate([
     {
@@ -79,7 +76,12 @@ router.get('/analysis/trends', isAuthenticated, (req, res, next) => {
       $sort: { '_id.year': 1, '_id.month': 1 }
     }
   ])
-    .then(result => res.status(200).json(result))
+    .then(result => {
+      if (result.length === 0) {
+        return res.status(200).json({ message: 'No trend data available.' })
+      }
+      res.status(200).json(result)
+    })
     .catch(error => next(error))
 })
 
