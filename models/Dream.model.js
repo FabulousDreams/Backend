@@ -23,10 +23,20 @@ const dreamSchema = new Schema({
     default: Date.now
   },
 
-  emotions: [String], // array of emotions ( “happy”, “anxious”)
-
-  tags: [String], // Array of user-defined tags ( “flying”, “ocean”)
-
+  emotions: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Emotion'
+    }
+  ],
+  emotionDetails: { type: String },
+  tags: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Tag'
+    }
+  ],
+  colors: [String],
   isPublic: {
     type: Boolean,
     default: false

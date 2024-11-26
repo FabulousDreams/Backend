@@ -1,59 +1,84 @@
-const express = require('express');
-const router = express.Router();
-const { isAuthenticated } = require('../middleware/jwt.middleware');
-const Dream = require('../models/Dream.model');
+const express = require('express')
+const router = express.Router()
+const { isAuthenticated } = require('../middleware/jwt.middleware.js')
+const Dream = require('../models/Dream.model.js')
 
-// endpoint to get aggregated data
-
-router.get('/dreams/analytics', isAuthenticated, async (req, res, next) => {
-    try {
-        const userId = req.user._id;
-
-        // Count dreams by emotion
-
-        const emotionsCounts = await Dream.aggregate([
-            { $match: { userId } },
-            { $unwind: '$emotions' },
-            { $group: { _id: '$emotions', count: { $sum: 1 } } },
-        ]);
-
-        // count dreams by tag
-
-        const tagCounts = await Dream.aggregate([
-            { $match: { userId } },
-            { $unwind: '$tags' },
-            { $group: { _id: '$tags', count: { $sum: 1 } } }
-        ]);
-
-        // count public x private dreams
-
-        const publicPrivateCounts = await Dream.aggregate([
-            { $match: { userId } },
-            { $group: { _id: '$isPublic', count: { $sum: 1 } } }
-        ]);
-
-        // count dreams over time periods
-
-        const dreamsOverTime = await Dream.aggregate([
-            { $match: { userId } },
-            {
-              $group: {
-                _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
-                count: { $sum: 1 }
-              }
-            },
-            { $sort: { _id: 1 } }
-          ]);
-
-          res.status(200).json({
-            emotionsCounts,
-            tagCounts,
-            publicPrivateCounts,
-            dreamsOverTime
-          });
-    } catch (error) {
-        next(error);
+// Get dream count grouped by emotions
+router.get('/analysis/emotions', isAuthenticated, (req, res, next) => {
+  Dream.aggregate([
+    { $unwind: '$emotions' },
+    {
+      $group: {
+        _id: '$emotions',
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $lookup: {
+        from: 'emotions',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'emotionDetails'
+      }
+    },
+    {
+      $project: {
+        emotion: { $arrayElemAt: ['$emotionDetails.name', 0] },
+        count: 1
+      }
     }
-});
+  ])
+    .then(result => res.status(200).json(result))
+    .catch(error => next(error))
+})
 
-module.exports = router;
+// Get dream count grouped by tags
+router.get('/analysis/tags', isAuthenticated, (req, res, next) => {
+  Dream.aggregate([
+    { $unwind: '$tags' },
+    {
+      $group: {
+        _id: '$tags',
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $lookup: {
+        from: 'tags',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'tagDetails'
+      }
+    },
+    {
+      $project: {
+        tag: { $arrayElemAt: ['$tagDetails.name', 0] },
+        count: 1
+      }
+    }
+  ])
+    .then(result => res.status(200).json(result))
+    .catch(error => next(error))
+})
+
+// Get dream trends over time (grouped by month/year)
+router.get('/analysis/trends', isAuthenticated, (req, res, next) => {
+  Dream.aggregate([
+    {
+      $group: {
+        _id: {
+          year: { $year: '$date' },
+          month: { $month: '$date' }
+        },
+        count: { $sum: 1 }
+      }
+    },
+    {
+      $sort: { '_id.year': 1, '_id.month': 1 }
+    }
+  ])
+    .then(result => res.status(200).json(result))
+    .catch(error => next(error))
+})
+
+module.exports = router

@@ -1,30 +1,28 @@
-const { Schema, model } = require('mongoose')
+const mongoose = require('mongoose')
+const { Schema, model } = mongoose
 
 const emotionSchema = new Schema({
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-
-  dreamId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Dream',
-    
-  },
-
-  emotions: [
-    {
-      name: String,
-      intensity: Number
-    }
-  ], // Intensity score for each emotion
-  date: {
-    type: Date,
-    default: Date.now
-  },
-  detail: [{ type: String }],
-  color: [String]
+  name: {
+    type: String,
+    required: true,
+    enum: [
+      'Happy',
+      'Sad',
+      'Excited',
+      'Calm',
+      'Fearful',
+      'Angry',
+      'Joyful',
+      'Anxious',
+      'Hopeful',
+      'Confused',
+      'Lonely',
+      'Grateful',
+      'Surprised',
+      'Content',
+      'Nostalgic'
+    ]
+  }
 })
 
 const Emotion = model('Emotion', emotionSchema)
