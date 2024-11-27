@@ -25,6 +25,14 @@ router.get('/dreams/public', isAuthenticated, (req, res, next) => {
 })
 
 router.get('/dreams/mine', isAuthenticated, (req, res, next) => {
+  const { tags, emotions, startDate, endDate } = req.query
+  if (tags) filter.tags = { $in: tags.split(',') }
+  if (emotions) filter.emotions = { $in: emotions.split(',') }
+  if (startDate || endDate) {
+    filter.date = {}
+    if (startDate) filter.date.$gte = new Date(startDate)
+    if (endDate) filter.date.$lte = new Date(endDate)
+  }
   Dreams.find({ userId: req.user._id })
     .then(userDreams => {
       res.status(200).json(userDreams)
