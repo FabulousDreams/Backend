@@ -51,7 +51,8 @@ router.get('/dreams/:id', isAuthenticated, (req, res, next) => {
 })
 
 router.post('/dreams', isAuthenticated, (req, res, next) => {
-  const { title, description, emotions, tags, isPublic, imageUrl } = req.body
+  const { title, description, emotions, tags, isPublic, imageUrl, date } =
+    req.body
 
   if (!title || !description) {
     return res
@@ -63,10 +64,13 @@ router.post('/dreams', isAuthenticated, (req, res, next) => {
     userId: req.user._id,
     title,
     description,
+    date,
     emotions,
     tags,
     isPublic,
     imageUrl
+    // colors,
+    // emotionDetails,
   })
     .then(newDream => {
       res
