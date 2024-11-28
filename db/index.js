@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const Emotion = require('../models/Emotion.model')
-const Tag = require('../models/Tag.model')
+const Tags = require('../models/Tag.model')
 
 const MONGO_URI =
   process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/dreamcatcher-backend'
@@ -60,7 +60,7 @@ async function seedTags () {
 
   try {
     for (const tag of tags) {
-      await Tag.updateOne({ name: tag.name }, { $set: tag }, { upsert: true })
+      await Tags.updateOne({ name: tag.name }, { $set: tag }, { upsert: true })
     }
     console.log('Tags seeded successfully.')
   } catch (error) {

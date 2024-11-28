@@ -25,6 +25,5 @@ const tagSchema = new Schema({
   }
 })
 
-const Tag = model('Tag', tagSchema)
-
-module.exports = Tag
+const Tags = mongoose.models.Tag || model('Tag', tagSchema)
+module.exports = Tags
