@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const Emotion = require('../models/Emotion.model')
-const Tags = require('../models/Tag.model')
+const Tags = require('../models/Tag.Model')
 
 const MONGO_URI =
   process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/dreamcatcher-backend'
