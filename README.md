@@ -151,6 +151,6 @@ Contribuitions are welcome! Please, follow these steps:
 
 For questions or support, contact the project maintainers:
 
-Mona Eslahkonha: [GitHub Profile](https://github.com/monaeslah)
-Mari Victorino: [GitHub Profile](https://github.com/mavictorino)
+Mona Eslahkonha: [GitHub Profile](https://github.com/monaeslah).
+Mari Victorino: [GitHub Profile](https://github.com/mavictorino).
 Alternatively, open an issue in the repository.
