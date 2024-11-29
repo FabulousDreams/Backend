@@ -4,6 +4,8 @@ This is the backend for the **DreamCatcher** application, a platform where users
 
 The frontend repository can be found here: [DreamCatcher Frontend](https://github.com/FabulousDreams/Frontend).
 
+![DreamCatcher UI](./image/Screenshot%202024-11-29%20at%2011.44.47.png)
+
 ---
 
 ## Table of Contents
